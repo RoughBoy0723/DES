@@ -1,0 +1,16 @@
+﻿  DES.c
+C:\Users\ohwy9\source\repos\DES\DES.c(198,10): warning C4244: '=': 'unsigned __int64'에서 'unsigned long'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\ohwy9\source\repos\DES\DES.c(199,18): warning C4244: '=': 'unsigned __int64'에서 'unsigned long'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\ohwy9\source\repos\DES\DES.c(270,27): warning C4013: 'initial_permutation'이(가) 정의되지 않았습니다. extern은 int형을 반환하는 것으로 간주합니다.
+C:\Users\ohwy9\source\repos\DES\DES.c(274,2): warning C4013: 'generate_subkeys'이(가) 정의되지 않았습니다. extern은 int형을 반환하는 것으로 간주합니다.
+C:\Users\ohwy9\source\repos\DES\DES.c(283,18): warning C4013: 'round_function'이(가) 정의되지 않았습니다. extern은 int형을 반환하는 것으로 간주합니다.
+C:\Users\ohwy9\source\repos\DES\DES.c(291,10): warning C4013: 'inverse_initial_permutation'이(가) 정의되지 않았습니다. extern은 int형을 반환하는 것으로 간주합니다.
+C:\Users\ohwy9\source\repos\DES\DES.c(333,2): warning C4013: 'Enc'이(가) 정의되지 않았습니다. extern은 int형을 반환하는 것으로 간주합니다.
+C:\Users\ohwy9\source\repos\DES\DES.c(337,2): warning C4013: 'Dec'이(가) 정의되지 않았습니다. extern은 int형을 반환하는 것으로 간주합니다.
+DES.obj : error LNK2019: initial_permutationdes_decrypt 함수에서 참조되는 확인할 수 없는 외부 기호
+DES.obj : error LNK2019: generate_subkeysdes_decrypt 함수에서 참조되는 확인할 수 없는 외부 기호
+DES.obj : error LNK2019: round_functiondes_decrypt 함수에서 참조되는 확인할 수 없는 외부 기호
+DES.obj : error LNK2019: inverse_initial_permutationdes_decrypt 함수에서 참조되는 확인할 수 없는 외부 기호
+DES.obj : error LNK2019: Encmain 함수에서 참조되는 확인할 수 없는 외부 기호
+DES.obj : error LNK2019: Decmain 함수에서 참조되는 확인할 수 없는 외부 기호
+C:\Users\ohwy9\source\repos\DES\x64\Debug\DES.exe : fatal error LNK1120: 6개의 확인할 수 없는 외부 참조입니다.
