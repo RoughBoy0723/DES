@@ -1,6 +1,7 @@
 ﻿#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <windows.h>
 #include <bcrypt.h>
 
@@ -136,8 +137,9 @@ const int permuted_choice2[48] = {
 // DES는 64bit 블록 암호화 구현
 
 
-unsigned long long Key_Generation() {
-	unsigned long long key = 0;
+// key 생성 함수 windows.h에 있는 BCryptGenRandom 함수 사용
+uint64_t Key_Generation() {
+	uint64_t key = 0;
 
 	// BCryptGenRandom 함수 호출로 암호학적으로 안전한 난수 생성
 	if (BCryptGenRandom(NULL, (PUCHAR)&key, sizeof(key), BCRYPT_USE_SYSTEM_PREFERRED_RNG) != 0) {
@@ -148,12 +150,11 @@ unsigned long long Key_Generation() {
 	return key;
 }
 
-
-//치환 함수 좀 더 분석할것
-unsigned long long Permuter_Choice(unsigned long long var, const int pc[], int number) {
+// 치환 함수(분석 필요)
+uint64_t Permuter_Choice(uint64_t var, const int pc[], int number) {
 	int a;
-	unsigned long long numb = 0x00;
-	unsigned long long aft_ch = 0x00;
+	uint64_t numb = 0x00;
+	uint64_t aft_ch = 0x00;
 
 	for (a = 0; a < number; a++) { // (컴퓨터는 0부터 센다)
 		numb = var >> ((number + 8) - pc[a]); // 원하는 자리의 비트를 63번째까지 shift(뒤에 비트를 삭제해줌)
@@ -174,9 +175,9 @@ unsigned long long Permuter_Choice(unsigned long long var, const int pc[], int n
 	return aft_ch;
 }
 
-//이것도 더 분석 할것 치환 알고리즘에 대한 이해가 부족
-unsigned long long Expansion_Bit(unsigned long R) {
-	unsigned long long res = 0;
+// 32비트를 p_box를 가지고 48비트로 확장 (분석 필요)
+uint64_t Expansion_Bit(uint32_t R) {
+	uint64_t res = 0;
 	for (int i = 0; i < 48; i++) {
 		if ((R >> (31 - expansion_p_box[i])) & 1) {
 			res |= (1ULL << (47 - i));
@@ -185,12 +186,14 @@ unsigned long long Expansion_Bit(unsigned long R) {
 	return res;
 }
 
-unsigned long Rotation(unsigned long num, unsigned int n) {
+// 32비트를 n만큼 왼쪽으로 회전
+uint32_t Rotation(uint32_t num, unsigned int n) {
 	return (((num << n) & 0xffffffff) | (num >> (28 - n)));
 }
 
-void Key_Schedule(unsigned long long key, unsigned long long *sub_key) {
-	unsigned long long tmp = 0;
+// key를 가지고 16개의 subkey를 생성
+void Key_Schedule(uint64_t key, uint64_t*sub_key) {
+	uint64_t tmp = 0;
 	
 	unsigned long K = 0, D = 0;
 	tmp = Permuter_Choice(key, permuted_choice1, 56);
@@ -201,7 +204,7 @@ void Key_Schedule(unsigned long long key, unsigned long long *sub_key) {
 		K = Rotation(K, left_shift[i]);
 		D = Rotation(D, left_shift[i]);
 
-		tmp = (unsigned long long)K << 28;
+		tmp = (uint64_t)K << 28;
 		tmp |= D;
 
 		sub_key[i] = Permuter_Choice(tmp, permuted_choice2, 48);
@@ -209,13 +212,14 @@ void Key_Schedule(unsigned long long key, unsigned long long *sub_key) {
 
 }
 
-unsigned long long S_Box(unsigned long long num) {
+// 16round를 거치면서 48bit을 32bit으로 축소하는 S-Box
+uint64_t S_Box(uint64_t num) {
 
 	//num 은 48 bit니까 S_box 들어가기전 6비트 8개로 쪼개줘야함
 
-	unsigned char rows[8], cols[8];
+	uint8_t rows[8], cols[8];
 
-	unsigned long long res = 0x00;
+	uint64_t res = 0x00;
 
 	for (int i = 7; i >= 0; i--) {
 		rows[i] = num & 0b00100001;
@@ -228,35 +232,39 @@ unsigned long long S_Box(unsigned long long num) {
 
 	//S-Box를 3차원으로 만들고 이것도 for문으로 변경
 	res |= S8[rows[7]][cols[7]];
-	res |= (unsigned long long)S7[rows[6]][cols[6]] << 4;
-	res |= (unsigned long long)S6[rows[5]][cols[5]] << 8;
-	res |= (unsigned long long)S5[rows[4]][cols[4]] << 12;
-	res |= (unsigned long long)S4[rows[3]][cols[3]] << 16;
-	res |= (unsigned long long)S3[rows[2]][cols[2]] << 20;
-	res |= (unsigned long long)S2[rows[1]][cols[1]] << 24;
-	res |= (unsigned long long)S1[rows[0]][cols[0]] << 28;
+	res |= (uint64_t)S7[rows[6]][cols[6]] << 4;
+	res |= (uint64_t)S6[rows[5]][cols[5]] << 8;
+	res |= (uint64_t)S5[rows[4]][cols[4]] << 12;
+	res |= (uint64_t)S4[rows[3]][cols[3]] << 16;
+	res |= (uint64_t)S3[rows[2]][cols[2]] << 20;
+	res |= (uint64_t)S2[rows[1]][cols[1]] << 24;
+	res |= (uint64_t)S1[rows[0]][cols[0]] << 28;
 	
 	return res;
 }
 
-unsigned long long Initial_Permuter(unsigned long long plain_text) {
-	unsigned long long aftpt = 0;
+// 
+// Enc에서 input을 message_initial_permutation를 사용하여 테이블로 치환
+uint64_t Initial_Permuter(uint64_t plain_text) {
+	uint64_t aftpt = 0;
 	for (int i = 0; i < 64; i++) {
 		aftpt |= ((plain_text >> (64 - message_initial_permutation[i])) & 0x01) << (63 - i);
 	}
 	return aftpt;
 }
 
-unsigned long long Inverse_Initial_Permuter(unsigned long long cipher_text) {
-	unsigned long long aftct = 0;
+// Enc에서 16-round를 끝내고 최종 치환 
+uint64_t Inverse_Initial_Permuter(uint64_t cipher_text) {
+	uint64_t aftct = 0;
 	for (int i = 0; i < 64; i++) {
 		aftct |= ((cipher_text >> (64 - inverse_message_final_permutation[i])) & 0x01) << (63 - i);
 	}
 	return aftct;
 }
 
-unsigned long Primitive(unsigned long num) {
-	unsigned long res = 0;
+// Enc 라운드내 함수의 치환함수
+uint32_t Primitive(uint32_t num) {
+	uint32_t res = 0;
 	for (int i = 0; i < 32; i++) {
 		if ((num >> (31 - straight_p_box[i])) & 1) {
 			res |= (1UL << (31 - i));
@@ -265,127 +273,143 @@ unsigned long Primitive(unsigned long num) {
 	return res;
 }
 
-void Enc(unsigned long long* plain_text, unsigned long long* cipher_text, unsigned long long key) {
-	unsigned long long tmp = 0x00;
-	unsigned long long sub_key[16];
-	unsigned long long L_tmp = 0;
+void Enc(uint64_t* plain_text, uint64_t* cipher_text, uint64_t key) {
+	uint64_t tmp = 0x00;
+	uint64_t sub_key[16];
+	uint64_t L_tmp = 0, R_tmp = 0;
 
+	// key값을 가지고 subkey 생성
 	Key_Schedule(key, sub_key);
-	// 32bit R, L로 나누기
-
+	
+	// plain_text를 Initial Permutation(message_initial_permutation을 테이블로 치환)
 	tmp = Initial_Permuter(*plain_text);
+	
+	// 치환한 값을 32bit R, L로 나누기
+	uint32_t L = 0, R =0;
 
-	/*****************************************************/
-
-	unsigned long L, R;
-
+	// unsigned라 shift 연산으로 나누는게 가능
 	L = tmp >> 32;
 	R = (tmp << 32) >> 32;
+	// and 연산으로도 사용가능
+	// L = (tmp & 0xFFFFFFFF00000000) >> 32;
+	// R = tmp & 0x00000000FFFFFFFF;
 
+	//16라운드 반복
 	for (int i = 0; i < 16; i++) {
 		L_tmp = L;
+		R_tmp = R;
 
-		tmp = Expansion_Bit(R);
-		tmp ^= sub_key[i];
+		/***         f() 시작        ***/
+		//32bit R을 48bit으로 확장
+		R_tmp = Expansion_Bit(R);
+
+		// 48bit로 확장된 R과 subkey[i]를 xor연산
+		R_tmp ^= sub_key[i];
+
+		// S-Box로 32bit으로 축소
 		R = S_Box(tmp);
-		R = Primitive(R); // P-박스 추가
+
+		// 단순 치환 P-Box
+		R = Primitive(R); 
+		/****         f() 끝         ***/
+
+
+		// L과 xor연산
 		R ^= L_tmp;
 
+		// L, R swap
 		L = R;
 		R = L_tmp;
 	}
 
-	// Final swap after the loop
+	// 마지막 16라운드에는 swap을 복원
 	tmp = R;
 	R = L;
 	L = tmp;
 
-	tmp = ((unsigned long long)L << 32) | R;
+	// R과 L을 합치고 최종 치환
+	tmp = ((uint64_t)L << 32) | R;
 	*cipher_text = Inverse_Initial_Permuter(tmp);
 }
 
-void Dec(unsigned long long* cipher_text, unsigned long long* plain_text, unsigned long long key) {
-	unsigned long long tmp = 0x00;
-	unsigned long long sub_key[16];
-	unsigned long long L_tmp = 0;
+void Dec(uint64_t* cipher_text, uint64_t* plain_text, uint64_t key) {
+	uint64_t tmp = 0x00;
+	uint64_t sub_key[16];
+	uint64_t L_tmp = 0, R_tmp = 0;
 
+
+	// key값을 가지고 subkey 생성
 	Key_Schedule(key, sub_key);
-	// 32bit R, L로 나누기
-
+	
+	// plain_text를 Initial Permutation(message_initial_permutation을 테이블로 치환)
 	tmp = Inverse_Initial_Permuter(*cipher_text);
 
-	/*****************************************************/
+	// 치환한 값을 32bit R, L로 나누기
+	uint32_t L=0, R=0;
 
-	unsigned long L, R;
-
+	// 치환한 값을 32bit R, L로 나누기
 	L = tmp >> 32;
 	R = (tmp << 32) >> 32;
 
-	for (int i = 15; i >= 0; i--) { // Reverse subkey order
+	//16라운드 반복 (Enc와는 Reverse 라운드)
+	for (int i = 15; i >= 0; i--) {
 		L_tmp = L;
+		R_tmp = R;
 
+		//32bit R을 48bit으로 확장
 		tmp = Expansion_Bit(R);
+
+		// 48bit로 확장된 R과 subkey[i]를 xor연산
 		tmp ^= sub_key[i];
+
+		// S-Box로 32bit으로 축소
 		R = S_Box(tmp);
-		R = Primitive(R); // P-box *before* XOR
+
+		// 단순 치환 P-Box
+		R = Primitive(R);
+
+		// L과 xor연산
 		R ^= L_tmp;
 
+		// L, R swap
 		L = R;
-		R = L_tmp; // Swap L and R for next round, but not the last round
+		R = L_tmp;
 	}
 
-	// Final swap after the loop
+	// 마지막에는 swap을 복구
 	tmp = R;
 	R = L;
 	L = tmp;
 
-	tmp = ((unsigned long long)L << 32) | R;
+	// R과 L을 합치고 최종 치환
+	tmp = ((uint64_t)L << 32) | R;
 	*plain_text = Initial_Permuter(tmp);
 }
 
 int main()
 {
 	// Key 생성
+	uint64_t key = Key_Generation();
 
-	unsigned long long key = Key_Generation();
+	// 평문
+	uint64_t plain_text = 0x0123456789ABCDEF;
 
-
-	//평문
-	unsigned long long plain_text = 0x0123456789ABCDEF;
-
-	unsigned long long cipher_text = 0;
-
-	unsigned long long decrypt_text = 0;
+	// 암호문
+	uint64_t cipher_text = 0;
+	
+	// 복호문
+	uint64_t decrypt_text = 0;
 	
 	printf("Plain Text : %llx\n", plain_text);
 	printf("Key : %llx\n", key);
 
+	//	암호화
 	Enc(&plain_text, &cipher_text, key);
 
 	printf("Cipher Text : %llx\n", cipher_text);
-	
+	 
+	//복호화
 	Dec(&cipher_text, &decrypt_text, key);
 
 	printf("Decrypt Text : %llx\n", decrypt_text);
-	// 정수를 초기치환
-
-	// 정수를 L, R로 나누기
-
-	// R을 P-box로 32 -> 48비트로 확장
-
-	// R을 Key(48bit)와 xor연산
-	
-	// S-Boxes로 32bit로 축소
-
-	//단순 치환 P-Box 32bit -> 32bit 
-
-	// L, R swap (마지막 스왑은 생략)
-	
-	//16번 반복
-
-	// 암호문 최종 치환
-
-	//암호문 출력
-
-	// K
 }
