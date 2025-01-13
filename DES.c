@@ -8,17 +8,18 @@
 #pragma comment(lib, "bcrypt.lib")
 
 /*
- * DES는 키 길이가 64 bit 하지만 실제 사용하는건 56bit, 8bit는 parity bit로 사용된다. 
+ * DES는 키 길이가 64 bit 하지만 실제 사용하는건 56bit, 8bit는 parity bit로 사용된다.
  * 블록 크기는 64bit
- * 
- * 
- * 
+ *
+ *
+ *
  */
 
 const int message_initial_permutation[64] = {
 	58, 50, 42, 34, 26, 18, 10, 02,
 	60, 52, 44, 36, 28, 20, 12, 04,
 	62, 54, 46, 38, 30, 22, 14, 06,
+	64, 56, 48, 40, 32, 24, 16, 8,
 	57, 49, 41, 33, 25, 17, 9, 01,
 	59, 51, 43, 35, 27, 19, 11, 03,
 	61, 53, 45, 37, 29, 21, 13, 05,
@@ -48,66 +49,66 @@ const int expansion_p_box[48] = {
 };
 
 const int straight_p_box[32] = {
-	16, 07, 20, 21, 
+	16, 07, 20, 21,
 	29, 12, 28, 17,
-	01, 15, 23, 26, 
+	01, 15, 23, 26,
 	05, 18, 31, 10,
-	02, 8, 24, 14, 
+	02, 8, 24, 14,
 	32, 27, 03, 9,
-	19, 13, 30, 06, 
+	19, 13, 30, 06,
 	22, 11, 04, 25
 };
 
 const int left_shift[16] = {
-	1, 1, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 1 
+	1, 1, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 1
 };
 
-const int S1[4][16] = {14,  4, 13,  1,  2, 15, 11,  8,  3, 10,  6, 12,  5,  9,  0,  7,
+const int S1[4][16] = { 14,  4, 13,  1,  2, 15, 11,  8,  3, 10,  6, 12,  5,  9,  0,  7,
 			 0, 15,  7,  4, 14,  2, 13,  1, 10,  6, 12, 11,  9,  5,  3,  8,
 			 4,  1, 14,  8, 13,  6,  2, 11, 15, 12,  9,  7,  3, 10,  5,  0,
-			15, 12,  8,  2,  4,  9,  1,  7,  5, 11,  3, 14, 10,  0,  6, 13 
+			15, 12,  8,  2,  4,  9,  1,  7,  5, 11,  3, 14, 10,  0,  6, 13
 };
 
 const int S2[4][16] = { 15,  1,  8, 14,  6, 11,  3,  4,  9,  7,  2, 13, 12,  0,  5, 10,
 			 3, 13,  4,  7, 15,  2,  8, 14, 12,  0,  1, 10,  6,  9, 11,  5,
 			 0, 14,  7, 11, 10,  4, 13,  1,  5,  8, 12,  6,  9,  3,  2, 15,
-			13,  8, 10,  1,  3, 15,  4,  2, 11,  6,  7, 12,  0,  5, 14,  9 
+			13,  8, 10,  1,  3, 15,  4,  2, 11,  6,  7, 12,  0,  5, 14,  9
 };
 
 const int S3[4][16] = { 10,  0,  9, 14,  6,  3, 15,  5,  1, 13, 12,  7, 11,  4,  2,  8,
 			13,  7,  0,  9,  3,  4,  6, 10,  2,  8,  5, 14, 12, 11, 15,  1,
 			13,  6,  4,  9,  8, 15,  3,  0, 11,  1,  2, 12,  5, 10, 14,  7,
-			 1, 10, 13,  0,  6,  9,  8,  7,  4, 15, 14,  3, 11,  5,  2, 12 
+			 1, 10, 13,  0,  6,  9,  8,  7,  4, 15, 14,  3, 11,  5,  2, 12
 };
 
 const int S4[4][16] = { 7, 13, 14,  3,  0,  6,  9, 10,  1,  2,  8,  5, 11, 12,  4, 15,
 			13,  8, 11,  5,  6, 15,  0,  3,  4,  7,  2, 12,  1, 10, 14,  9,
 			10,  6,  9,  0, 12, 11,  7, 13, 15,  1,  3, 14,  5,  2,  8,  4,
-			 3, 15,  0,  6, 10,  1, 13,  8,  9,  4,  5, 11, 12,  7,  2, 14 
+			 3, 15,  0,  6, 10,  1, 13,  8,  9,  4,  5, 11, 12,  7,  2, 14
 };
 
 const int S5[4][16] = { 2, 12,  4,  1,  7, 10, 11,  6,  8,  5,  3, 15, 13,  0, 14,  9,
 			14, 11,  2, 12,  4,  7, 13,  1,  5,  0, 15, 10,  3,  9,  8,  6,
 			 4,  2,  1, 11, 10, 13,  7,  8, 15,  9, 12,  5,  6,  3,  0, 14,
-			11,  8, 12,  7,  1, 14,  2, 13,  6, 15,  0,  9, 10,  4,  5,  3 
+			11,  8, 12,  7,  1, 14,  2, 13,  6, 15,  0,  9, 10,  4,  5,  3
 };
 
 const int S6[4][16] = { 12,  1, 10, 15,  9,  2,  6,  8,  0, 13,  3,  4, 14,  7,  5, 11,
 			10, 15,  4,  2,  7, 12,  9,  5,  6,  1, 13, 14,  0, 11,  3,  8,
 			 9, 14, 15,  5,  2,  8, 12,  3,  7,  0,  4, 10,  1, 13, 11,  6,
-			 4,  3,  2, 12,  9,  5, 15, 10, 11, 14,  1,  7,  6,  0,  8, 13 
+			 4,  3,  2, 12,  9,  5, 15, 10, 11, 14,  1,  7,  6,  0,  8, 13
 };
 
 const int S7[4][16] = { 4, 11,  2, 14, 15,  0,  8, 13,  3, 12,  9,  7,  5, 10,  6,  1,
 			13,  0, 11,  7,  4,  9,  1, 10, 14,  3,  5, 12,  2, 15,  8,  6,
 			 1,  4, 11, 13, 12,  3,  7, 14, 10, 15,  6,  8,  0,  5,  9,  2,
-			 6, 11, 13,  8,  1,  4, 10,  7,  9,  5,  0, 15, 14,  2,  3, 12 
+			 6, 11, 13,  8,  1,  4, 10,  7,  9,  5,  0, 15, 14,  2,  3, 12
 };
 
 const int S8[4][16] = { 13,  2,  8,  4,  6, 15, 11,  1, 10,  9,  3, 14,  5,  0, 12,  7,
 			 1, 15, 13,  8, 10,  3,  7,  4, 12,  5,  6, 11,  0, 14,  9,  2,
 			 7, 11,  4,  1,  9, 12, 14,  2,  0,  6, 10, 13, 15,  3,  5,  8,
-			 2,  1, 14,  7,  4, 10,  8, 13, 15, 12,  9,  0,  3,  5,  6, 11 
+			 2,  1, 14,  7,  4, 10,  8, 13, 15, 12,  9,  0,  3,  5,  6, 11
 };
 
 const int permuted_choice1[56] = {
@@ -179,9 +180,7 @@ uint64_t Permuter_Choice(uint64_t var, const int pc[], int number) {
 uint64_t Expansion_Bit(uint32_t R) {
 	uint64_t res = 0;
 	for (int i = 0; i < 48; i++) {
-		if ((R >> (31 - expansion_p_box[i])) & 1) {
-			res |= (1ULL << (47 - i));
-		}
+		res |= (uint64_t)((R >> (32 - expansion_p_box[i])) & 1) << (47 - i);
 	}
 	return res;
 }
@@ -192,34 +191,35 @@ uint32_t Rotation(uint32_t num, unsigned int n) {
 }
 
 // key를 가지고 16개의 subkey를 생성
-void Key_Schedule(uint64_t key, uint64_t*sub_key) {
+void Key_Schedule(uint64_t key, uint64_t* sub_key) {
 	uint64_t tmp = 0;
-	
-	unsigned long K = 0, D = 0;
+
+	uint32_t C = 0, D = 0;
 	tmp = Permuter_Choice(key, permuted_choice1, 56);
 
-	K = tmp >> 28;
+	C = tmp >> 28;
 	D = (tmp << 28) >> 28;
+
 	for (int i = 0; i < 16; i++) {
-		K = Rotation(K, left_shift[i]);
+		C = Rotation(C, left_shift[i]);
 		D = Rotation(D, left_shift[i]);
 
-		tmp = (uint64_t)K << 28;
-		tmp |= D;
+		tmp = (uint64_t)C << 28;
+		tmp |= (uint64_t)D;
 
-		sub_key[i] = Permuter_Choice(tmp, permuted_choice2, 48);
+		*(sub_key + i) = Permuter_Choice(tmp, permuted_choice2, 48);
 	}
 
 }
 
 // 16round를 거치면서 48bit을 32bit으로 축소하는 S-Box
-uint64_t S_Box(uint64_t num) {
+uint32_t S_Box(uint64_t num) {
 
 	//num 은 48 bit니까 S_box 들어가기전 6비트 8개로 쪼개줘야함
 
 	uint8_t rows[8], cols[8];
 
-	uint64_t res = 0x00;
+	uint32_t res = 0x00;
 
 	for (int i = 7; i >= 0; i--) {
 		rows[i] = num & 0b00100001;
@@ -232,14 +232,14 @@ uint64_t S_Box(uint64_t num) {
 
 	//S-Box를 3차원으로 만들고 이것도 for문으로 변경
 	res |= S8[rows[7]][cols[7]];
-	res |= (uint64_t)S7[rows[6]][cols[6]] << 4;
-	res |= (uint64_t)S6[rows[5]][cols[5]] << 8;
-	res |= (uint64_t)S5[rows[4]][cols[4]] << 12;
-	res |= (uint64_t)S4[rows[3]][cols[3]] << 16;
-	res |= (uint64_t)S3[rows[2]][cols[2]] << 20;
-	res |= (uint64_t)S2[rows[1]][cols[1]] << 24;
-	res |= (uint64_t)S1[rows[0]][cols[0]] << 28;
-	
+	res |= (uint32_t)S7[rows[6]][cols[6]] << 4;
+	res |= (uint32_t)S6[rows[5]][cols[5]] << 8;
+	res |= (uint32_t)S5[rows[4]][cols[4]] << 12;
+	res |= (uint32_t)S4[rows[3]][cols[3]] << 16;
+	res |= (uint32_t)S3[rows[2]][cols[2]] << 20;
+	res |= (uint32_t)S2[rows[1]][cols[1]] << 24;
+	res |= (uint32_t)S1[rows[0]][cols[0]] << 28;
+
 	return res;
 }
 
@@ -248,7 +248,8 @@ uint64_t S_Box(uint64_t num) {
 uint64_t Initial_Permuter(uint64_t plain_text) {
 	uint64_t aftpt = 0;
 	for (int i = 0; i < 64; i++) {
-		aftpt |= ((plain_text >> (64 - message_initial_permutation[i])) & 0x01) << (63 - i);
+		aftpt <<= 1;
+		aftpt |= (plain_text >> (64 - message_initial_permutation[i])) & 0x0000000000000001;
 	}
 	return aftpt;
 }
@@ -266,9 +267,7 @@ uint64_t Inverse_Initial_Permuter(uint64_t cipher_text) {
 uint32_t Primitive(uint32_t num) {
 	uint32_t res = 0;
 	for (int i = 0; i < 32; i++) {
-		if ((num >> (31 - straight_p_box[i])) & 1) {
-			res |= (1UL << (31 - i));
-		}
+		res = res | ((num >> (32 - straight_p_box[i])) & 0x01) << (31 - i);
 	}
 	return res;
 }
@@ -276,130 +275,138 @@ uint32_t Primitive(uint32_t num) {
 void Enc(uint64_t* plain_text, uint64_t* cipher_text, uint64_t key) {
 	uint64_t tmp = 0x00;
 	uint64_t sub_key[16];
-	uint64_t L_tmp = 0, R_tmp = 0;
+	uint64_t output = 0;
+	uint32_t R_tmp = 0, swap_tmp = 0;
 
 	// key값을 가지고 subkey 생성
 	Key_Schedule(key, sub_key);
-	
+
+	for (int i = 0; i < 16; i++) {
+		printf("subkey[%d] : %llx\n", i, sub_key[i]);
+	}
+
 	// plain_text를 Initial Permutation(message_initial_permutation을 테이블로 치환)
 	tmp = Initial_Permuter(*plain_text);
-	
-	// 치환한 값을 32bit R, L로 나누기
-	uint32_t L = 0, R =0;
 
-	// unsigned라 shift 연산으로 나누는게 가능
+	printf("Initial Permutation : %llx\n", tmp);
+
+	// 치환한 값을 32bit R, L로 나누기
+	uint32_t L = 0, R = 0;
+
+	// 치환한 값을 32bit R, L로 나누기
 	L = tmp >> 32;
-	R = (tmp << 32) >> 32;
-	// and 연산으로도 사용가능
-	// L = (tmp & 0xFFFFFFFF00000000) >> 32;
-	// R = tmp & 0x00000000FFFFFFFF;
+	R = tmp & 0x00000000FFFFFFFF;
+
+	printf("L : %x\n", L);
+	printf("R : %x\n", R);
 
 	//16라운드 반복
 	for (int i = 0; i < 16; i++) {
-		L_tmp = L;
 		R_tmp = R;
 
 		/***         f() 시작        ***/
 		//32bit R을 48bit으로 확장
-		R_tmp = Expansion_Bit(R);
+		output = Expansion_Bit(R);
 
 		// 48bit로 확장된 R과 subkey[i]를 xor연산
-		R_tmp ^= sub_key[i];
+		output ^= sub_key[i];
 
 		// S-Box로 32bit으로 축소
-		R = S_Box(tmp);
+		R = S_Box(output);
 
 		// 단순 치환 P-Box
-		R = Primitive(R); 
+		R = Primitive(R);
 		/****         f() 끝         ***/
 
-
 		// L과 xor연산
-		R ^= L_tmp;
+		R ^= L;
 
 		// L, R swap
-		L = R;
-		R = L_tmp;
+		L = R_tmp;
 	}
 
 	// 마지막 16라운드에는 swap을 복원
-	tmp = R;
+	swap_tmp = R;
 	R = L;
-	L = tmp;
+	L = swap_tmp;
 
 	// R과 L을 합치고 최종 치환
-	tmp = ((uint64_t)L << 32) | R;
+	tmp = ((uint64_t)L << 32) | (uint64_t)R;
 	*cipher_text = Inverse_Initial_Permuter(tmp);
 }
+
 
 void Dec(uint64_t* cipher_text, uint64_t* plain_text, uint64_t key) {
 	uint64_t tmp = 0x00;
 	uint64_t sub_key[16];
-	uint64_t L_tmp = 0, R_tmp = 0;
+	uint64_t output = 0;
+	uint32_t R_tmp = 0, swap_tmp = 0;
 
 
 	// key값을 가지고 subkey 생성
 	Key_Schedule(key, sub_key);
-	
+
 	// plain_text를 Initial Permutation(message_initial_permutation을 테이블로 치환)
-	tmp = Inverse_Initial_Permuter(*cipher_text);
+	tmp = Initial_Permuter(*cipher_text);
 
 	// 치환한 값을 32bit R, L로 나누기
-	uint32_t L=0, R=0;
+	uint32_t L = 0, R = 0;
 
 	// 치환한 값을 32bit R, L로 나누기
 	L = tmp >> 32;
-	R = (tmp << 32) >> 32;
+	R = tmp & 0x00000000FFFFFFFF;
 
 	//16라운드 반복 (Enc와는 Reverse 라운드)
 	for (int i = 15; i >= 0; i--) {
-		L_tmp = L;
 		R_tmp = R;
 
+		/***         f() 시작        ***/
 		//32bit R을 48bit으로 확장
-		tmp = Expansion_Bit(R);
+		output = Expansion_Bit(R);
 
 		// 48bit로 확장된 R과 subkey[i]를 xor연산
-		tmp ^= sub_key[i];
+		output ^= sub_key[i];
 
 		// S-Box로 32bit으로 축소
-		R = S_Box(tmp);
+		R = S_Box(output);
 
 		// 단순 치환 P-Box
 		R = Primitive(R);
+		/****         f() 끝         ***/
 
 		// L과 xor연산
-		R ^= L_tmp;
+		R ^= L;
 
 		// L, R swap
-		L = R;
-		R = L_tmp;
+		L = R_tmp;
 	}
 
-	// 마지막에는 swap을 복구
-	tmp = R;
+	// 마지막 16라운드에는 swap을 복원
+	swap_tmp = R;
 	R = L;
-	L = tmp;
+	L = swap_tmp;
 
 	// R과 L을 합치고 최종 치환
-	tmp = ((uint64_t)L << 32) | R;
-	*plain_text = Initial_Permuter(tmp);
+	tmp = ((uint64_t)L << 32) | (uint64_t)R;
+	*plain_text = Inverse_Initial_Permuter(tmp);
 }
+
 
 int main()
 {
 	// Key 생성
+	//uint64_t key = 0x02468ace13579bdf;
 	uint64_t key = Key_Generation();
 
 	// 평문
-	uint64_t plain_text = 0x0123456789ABCDEF;
+	uint64_t plain_text = 0x0123456789abcdef;
 
 	// 암호문
 	uint64_t cipher_text = 0;
-	
+
 	// 복호문
 	uint64_t decrypt_text = 0;
-	
+
 	printf("Plain Text : %llx\n", plain_text);
 	printf("Key : %llx\n", key);
 
@@ -407,7 +414,7 @@ int main()
 	Enc(&plain_text, &cipher_text, key);
 
 	printf("Cipher Text : %llx\n", cipher_text);
-	 
+
 	//복호화
 	Dec(&cipher_text, &decrypt_text, key);
 

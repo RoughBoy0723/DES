@@ -1,10 +1,4 @@
 ﻿  DES.c
-C:\Users\ohwy9\source\repos\DES\DES.c(203,10): warning C4244: '=': 'unsigned __int64'에서 'unsigned long'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-C:\Users\ohwy9\source\repos\DES\DES.c(204,18): warning C4244: '=': 'unsigned __int64'에서 'unsigned long'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-C:\Users\ohwy9\source\repos\DES\DES.c(306,7): warning C4244: '=': 'unsigned __int64'에서 'unsigned long'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-C:\Users\ohwy9\source\repos\DES\DES.c(316,7): warning C4244: '=': 'unsigned __int64'에서 'unsigned long'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-C:\Users\ohwy9\source\repos\DES\DES.c(322,6): warning C4244: '=': 'unsigned __int64'에서 'unsigned long'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-C:\Users\ohwy9\source\repos\DES\DES.c(359,7): warning C4244: '=': 'unsigned __int64'에서 'unsigned long'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-C:\Users\ohwy9\source\repos\DES\DES.c(369,7): warning C4244: '=': 'unsigned __int64'에서 'unsigned long'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-C:\Users\ohwy9\source\repos\DES\DES.c(375,6): warning C4244: '=': 'unsigned __int64'에서 'unsigned long'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\ohwy9\source\repos\DES\DES.c(200,10): warning C4244: '=': 'uint64_t'에서 'uint32_t'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\ohwy9\source\repos\DES\DES.c(201,18): warning C4244: '=': 'uint64_t'에서 'uint32_t'(으)로 변환하면서 데이터가 손실될 수 있습니다.
   DES.vcxproj -> C:\Users\ohwy9\source\repos\DES\x64\Debug\DES.exe
